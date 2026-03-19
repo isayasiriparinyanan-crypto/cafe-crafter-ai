@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cafe Crafter AI ☕</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root { --espresso:#2C1810; --roast:#5C3317; --caramel:#C8860A; --cream:#F5ECD7; }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Sarabun',sans-serif;background:var(--espresso);color:var(--cream);min-height:100vh;
+    background-image:radial-gradient(ellipse at 20% 20%,rgba(92,51,23,.6) 0%,transparent 60%),radial-gradient(ellipse at 80% 80%,rgba(200,134,10,.15) 0%,transparent 50%)}
+  h1,h2,h3{font-family:'Playfair Display',serif}
+  body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.2;
+    background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.05'/%3E%3C/svg%3E")}
+  .card{background:rgba(92,51,23,.35);border:1px solid rgba(200,134,10,.2);border-radius:16px;backdrop-filter:blur(8px)}
+  .card-light{background:rgba(245,236,215,.06);border:1px solid rgba(245,236,215,.12);border-radius:12px}
+  .card-danger{background:rgba(192,57,43,.15);border:1px solid rgba(192,57,43,.4);border-radius:12px}
+  .btn{font-family:'Sarabun',sans-serif;border-radius:8px;padding:8px 18px;cursor:pointer;transition:all .2s;border:none;font-size:14px}
+  .btn-gold{background:var(--caramel);color:var(--espresso);font-weight:600}
+  .btn-gold:hover{background:#e09b15;transform:translateY(-1px)}
+  .btn-gold:disabled{opacity:.4;cursor:not-allowed;transform:none}
+  .btn-outline{background:transparent;color:var(--cream);border:1px solid rgba(245,236,215,.3)}
+  .btn-outline:hover{border-color:var(--caramel);color:var(--caramel)}
+  .stat-bar{height:6px;border-radius:3px;background:rgba(245,236,215,.15);overflow:hidden}
+  .stat-fill{height:100%;border-radius:3px;transition:width .6s ease}
+  @keyframes floatIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes fadeOut{to{opacity:0;transform:translateY(-10px)}}
+  @keyframes blink{0%,80%,100%{opacity:0}40%{opacity:1}}
+  @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-5px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}80%{transform:translateX(3px)}}
+  .float-in{animation:floatIn .35s ease forwards}
+  .toast-el{animation:slideUp .3s ease,fadeOut .4s ease 3.4s forwards}
+  .shake-anim{animation:shake .4s ease}
+  .tab-btn{transition:all .2s;font-size:12px;padding:4px 12px;border-radius:20px;cursor:pointer;border:none;background:transparent;color:rgba(245,236,215,.5);font-family:'Sarabun',sans-serif}
+  .tab-btn.active{background:var(--caramel);color:var(--espresso);font-weight:600}
+  .menu-row{transition:background .15s;border-radius:8px;cursor:pointer}
+  .menu-row:hover{background:rgba(200,134,10,.1)}
+  input[type=range]{cursor:pointer;width:100%;accent-color:var(--caramel)}
+  input[type=text]{font-family:'Sarabun',sans-serif;background:rgba(245,236,215,.08);border:1px solid rgba(245,236,215,.2);color:var(--cream);border-radius:8px;padding:7px 12px;font-size:13px;width:100%}
+  input[type=text]:focus{outline:none;border-color:var(--caramel)}
+  ::-webkit-scrollbar{width:3px} ::-webkit-scrollbar-thumb{background:rgba(200,134,10,.35);border-radius:2px}
+  #log-wrap{max-height:190px;overflow-y:auto}
+  .loading-dots span{animation:blink 1.2s infinite;opacity:0}
+  .loading-dots span:nth-child(2){animation-delay:.2s} .loading-dots span:nth-child(3){animation-delay:.4s}
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:60;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(5px)}
+  .modal-box{background:#3a1f0e;border:1px solid rgba(200,134,10,.35);border-radius:20px;padding:1.75rem;max-width:440px;width:92%;animation:slideUp .3s ease}
+  .modal-box.dm{border-color:rgba(192,57,43,.6);background:#2a0e0e}
+  .go-overlay{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:70;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px)}
+  .chip-red{font-size:11px;padding:2px 8px;border-radius:20px;background:rgba(192,57,43,.2);color:#ff9999;border:1px solid rgba(192,57,43,.3)}
+  .chip-green{font-size:11px;padding:2px 8px;border-radius:20px;background:rgba(45,106,79,.25);color:#6fcf97;border:1px solid rgba(45,106,79,.4)}
+  .chip-gold{font-size:11px;padding:2px 8px;border-radius:20px;background:rgba(200,134,10,.2);color:var(--caramel);border:1px solid rgba(200,134,10,.3)}
+  .divider{border-top:1px dashed rgba(200,134,10,.18);margin:10px 0}
+</style>
+</head>
+<body class="relative">
+
+<!-- HEADER -->
+<div class="relative z-10 px-4 pt-5 pb-2 max-w-5xl mx-auto">
+  <div class="flex items-start justify-between mb-3">
+    <div>
+      <h1 class="text-3xl font-black tracking-tight" style="color:var(--caramel)">☕ Cafe Crafter <span style="color:var(--cream)">AI</span></h1>
+      <p class="text-xs opacity-50 mt-0.5">บริหารร้านกาแฟ · ทำผิดพลาด = ขาดทุน = ปิดร้าน</p>
+    </div>
+    <div class="text-right">
+      <div class="text-xs opacity-40 mb-0.5">วัน <span id="hd-day" style="color:var(--caramel)" class="font-bold">1</span> · <span id="hd-sess">เช้า</span></div>
+      <div id="money-box" class="text-2xl font-black" style="color:var(--caramel)">฿<span id="hd-money">2,500</span></div>
+      <div class="text-xs opacity-40">เงินสด</div>
+    </div>
+  </div>
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+    <div><div class="flex justify-between text-xs opacity-50 mb-1"><span>ชื่อเสียง</span><span id="sv-rep">50</span>/100</div><div class="stat-bar"><div class="stat-fill" id="sb-rep" style="width:50%;background:var(--caramel)"></div></div></div>
+    <div><div class="flex justify-between text-xs opacity-50 mb-1"><span>ขวัญพนักงาน</span><span id="sv-staff">70</span>/100</div><div class="stat-bar"><div class="stat-fill" id="sb-staff" style="width:70%;background:#2D6A4F"></div></div></div>
+    <div><div class="flex justify-between text-xs opacity-50 mb-1"><span>วัตถุดิบ</span><span id="sv-supply">80</span>/100</div><div class="stat-bar"><div class="stat-fill" id="sb-supply" style="width:80%;background:#7B68EE"></div></div></div>
+    <div><div class="flex justify-between text-xs opacity-50 mb-1"><span>ลูกค้าวันนี้</span><span id="sv-cust">0</span></div><div class="stat-bar"><div class="stat-fill" id="sb-cust" style="width:0%;background:#E67E22"></div></div></div>
+  </div>
+  <div id="loss-warning" class="hidden mt-2 card-danger px-3 py-2 flex items-center justify-between">
+    <span class="text-xs" style="color:#ff9999">🔴 ขาดทุนติดต่อกัน <span id="loss-days">0</span> วัน! อีก <span id="loss-remain">0</span> วันร้านจะถูกบังคับปิด</span>
+  </div>
+</div>
+
+<!-- MAIN GRID -->
+<div class="relative z-10 max-w-5xl mx-auto px-4 py-3 grid grid-cols-1 md:grid-cols-3 gap-3">
+
+  <!-- LEFT -->
+  <div class="flex flex-col gap-3">
+
+    <!-- Menu -->
+    <div class="card p-4">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-base font-bold" style="color:var(--caramel)">☕ เมนู & ราคา</h2>
+        <div class="flex gap-1">
+          <button class="tab-btn active" onclick="switchTab('drinks')">เครื่องดื่ม</button>
+          <button class="tab-btn" onclick="switchTab('food')">อาหาร</button>
+          <button class="tab-btn" onclick="switchTab('special')">พิเศษ</button>
+        </div>
+      </div>
+      <div id="menu-list" class="space-y-1"></div>
+      <div id="price-editor" class="hidden mt-3">
+        <div class="divider"></div>
+        <p class="text-xs opacity-50 mb-2">ปรับราคา: <span id="edit-name" class="font-bold" style="color:var(--caramel)"></span> <span id="edit-cost" class="chip-red ml-1"></span></p>
+        <div class="flex items-center gap-2 mb-1">
+          <input type="range" id="price-slider" min="20" max="350" step="5" oninput="onSlide(this.value)">
+          <span id="price-lbl" class="text-sm font-bold min-w-[42px] text-right" style="color:var(--caramel)">฿0</span>
+        </div>
+        <div id="margin-note" class="text-xs mb-2"></div>
+        <button class="btn btn-gold w-full text-sm" onclick="confirmPrice()">ยืนยันราคา</button>
+      </div>
+    </div>
+
+    <!-- Upgrades -->
+    <div class="card p-4">
+      <h2 class="text-base font-bold mb-3" style="color:var(--caramel)">🔧 อัปเกรดร้าน</h2>
+      <div id="upg-list" class="space-y-2"></div>
+    </div>
+
+    <!-- Fixed Costs -->
+    <div class="card p-4">
+      <h2 class="text-base font-bold mb-2" style="color:var(--caramel)">🏠 ค่าใช้จ่ายคงที่/วัน</h2>
+      <div id="fixed-list" class="space-y-1 mb-2"></div>
+      <div class="divider"></div>
+      <div class="flex justify-between text-sm font-bold"><span class="opacity-60">รวม</span><span style="color:#ff9999">฿<span id="total-fixed">600</span>/วัน</span></div>
+      <p class="text-xs opacity-40 mt-1">จ่ายอัตโนมัติเมื่อกด "สิ้นสุดวัน"</p>
+    </div>
+  </div>
+
+  <!-- CENTER -->
+  <div class="flex flex-col gap-3">
+
+    <!-- Cafe Floor -->
+    <div class="card p-4">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-base font-bold" style="color:var(--caramel)">🏪 หน้าร้าน</h2>
+        <span class="text-xs px-3 py-1 rounded-full font-semibold" style="background:rgba(45,106,79,.35);color:#6fcf97">เปิดอยู่</span>
+      </div>
+      <div id="cust-area" style="min-height:165px" class="space-y-2 mb-3">
+        <p class="text-xs opacity-35 text-center pt-10" id="no-cust-msg">กด "เรียกลูกค้า" เพื่อเริ่มวัน</p>
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <button class="btn btn-outline text-sm" onclick="callCustomers()">📢 เรียกลูกค้า</button>
+        <button class="btn btn-gold text-sm" onclick="serveCustomers()">☕ เสิร์ฟ</button>
+      </div>
+    </div>
+
+    <!-- AI Event -->
+    <div class="card p-4">
+      <div class="flex items-center justify-between mb-2">
+        <h2 class="text-base font-bold" style="color:var(--caramel)">⚡ เหตุการณ์ AI</h2>
+        <button class="btn btn-outline text-xs px-3 py-1.5" id="ev-btn" onclick="triggerEvent()">✨ สุ่มเหตุการณ์</button>
+      </div>
+      <div id="ev-box" class="card-light p-3 text-xs leading-relaxed" style="min-height:60px;color:rgba(245,236,215,.55)">ยังไม่มีเหตุการณ์...</div>
+    </div>
+
+    <!-- Risk Actions -->
+    <div class="card p-4">
+      <h2 class="text-base font-bold mb-2" style="color:var(--caramel)">⚠️ การตัดสินใจ</h2>
+      <p class="text-xs opacity-40 mb-2">บางอย่างประหยัดได้ แต่มีความเสี่ยง</p>
+      <div id="risk-list" class="space-y-2"></div>
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="flex flex-col gap-3">
+
+    <!-- P&L -->
+    <div class="card p-4">
+      <h2 class="text-base font-bold mb-3" style="color:var(--caramel)">📊 กำไร-ขาดทุน วันนี้</h2>
+      <div class="space-y-2 mb-3">
+        <div class="flex justify-between items-center"><span class="text-xs opacity-50">รายได้จากลูกค้า</span><span class="chip-green">+฿<span id="p-income">0</span></span></div>
+        <div class="flex justify-between items-center"><span class="text-xs opacity-50">ต้นทุนสินค้า (COGS)</span><span class="chip-red">-฿<span id="p-cogs">0</span></span></div>
+        <div class="flex justify-between items-center"><span class="text-xs opacity-50">ค่าใช้จ่ายคงที่</span><span class="chip-red">-฿<span id="p-fixed">0</span></span></div>
+        <div class="flex justify-between items-center"><span class="text-xs opacity-50">บทลงโทษ/โบนัส</span><span id="p-pen-chip" class="chip-red">฿<span id="p-pen">0</span></span></div>
+        <div class="divider"></div>
+        <div class="flex justify-between items-center">
+          <span class="text-sm font-bold">กำไรสุทธิ</span>
+          <span id="net-chip" class="text-lg font-black" style="color:#6fcf97">฿<span id="p-net">0</span></span>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <div class="card-light p-2 text-center"><div class="text-xs opacity-40 mb-0.5">⭐ พอใจ</div><div class="font-bold" style="color:#F39C12"><span id="ct-happy">0</span></div></div>
+        <div class="card-light p-2 text-center"><div class="text-xs opacity-40 mb-0.5">💔 ไม่พอใจ</div><div class="font-bold" style="color:#E74C3C"><span id="ct-unhappy">0</span></div></div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="card p-3 space-y-2">
+      <button class="btn btn-outline w-full text-sm" onclick="restockSupplies()">📦 สั่งวัตถุดิบ (-฿400, +55)</button>
+      <button class="btn btn-outline w-full text-sm" onclick="payBonus()">💝 โบนัสพนักงาน (-฿200)</button>
+      <button class="btn btn-gold w-full text-sm" onclick="endDay()">🌙 สิ้นสุดวัน (จ่ายค่าคงที่)</button>
+    </div>
+
+    <!-- AI Advisor -->
+    <div class="card p-4">
+      <h2 class="text-sm font-bold mb-2" style="color:var(--caramel)">🤖 AI ที่ปรึกษา</h2>
+      <div class="flex gap-2 mb-2">
+        <input type="text" id="ai-q" placeholder="ถามคำแนะนำได้เลย..." onkeydown="if(event.key==='Enter')askAI()">
+        <button class="btn btn-gold px-3 text-sm" onclick="askAI()">ถาม</button>
+      </div>
+      <div id="ai-out" class="text-xs leading-relaxed opacity-60" style="min-height:36px">ถามได้เลยครับ เช่น "ควรตั้งราคาเท่าไหร่?"</div>
+    </div>
+
+    <!-- Log -->
+    <div class="card p-4">
+      <h2 class="text-sm font-bold mb-2" style="color:var(--caramel)">📋 บันทึก</h2>
+      <div id="log-wrap"><div id="log" class="space-y-0.5"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast-area" class="fixed top-4 right-4 z-50 space-y-2 w-72"></div>
+
+<!-- MODAL -->
+<div id="modal" class="modal-overlay hidden">
+  <div id="modal-box" class="modal-box">
+    <h2 id="m-title" class="text-xl font-bold mb-2" style="color:var(--caramel)"></h2>
+    <div id="m-body" class="text-sm opacity-80 mb-4 leading-relaxed whitespace-pre-line"></div>
+    <div class="flex gap-2 justify-end">
+      <button id="m-cancel" class="btn btn-outline text-sm hidden" onclick="closeModal()">ยกเลิก</button>
+      <button id="m-ok" class="btn btn-gold text-sm" onclick="closeModal()">ตกลง</button>
+    </div>
+  </div>
+</div>
+
+<!-- GAME OVER -->
+<div id="go-screen" class="go-overlay hidden">
+  <div class="modal-box text-center" style="max-width:380px;background:#1a0505;border-color:rgba(192,57,43,.6)">
+    <div style="font-size:56px" class="mb-2">💸</div>
+    <h2 class="text-2xl font-black mb-2" style="color:#ff6b6b">ร้านปิดกิจการแล้ว!</h2>
+    <p id="go-reason" class="text-sm opacity-70 mb-1 leading-relaxed"></p>
+    <p class="text-xs opacity-40 mb-4">อยู่ได้ <span id="go-days">0</span> วัน</p>
+    <div id="go-stats" class="card-light p-3 text-left text-xs mb-4 space-y-1"></div>
+    <button class="btn btn-gold w-full" onclick="restart()">🔄 เริ่มใหม่</button>
+  </div>
+</div>
+
+<script>
+// ── STATE ──
+let G = {
+  money:2500, day:1, sess:'เช้า',
+  rep:50, staff:70, supply:80,
+  custsToday:0, income:0, cogs:0, fixedPaid:0, penalties:0,
+  happyCount:0, unhappyCount:0,
+  currentCusts:[], activeTab:'drinks', editingItem:null,
+  lossStreak:0, peakMoney:2500,
+  discountActive:false, tempStaff:false,
+};
+
+// ── FIXED COSTS ──
+const FIXED = [
+  {id:'rent',  name:'ค่าเช่าร้าน',     base:300},
+  {id:'sal',   name:'เงินเดือนพนักงาน', base:200},
+  {id:'util',  name:'ค่าน้ำ-ไฟ',       base:100},
+];
+function fixedTotal(){ return FIXED.reduce((s,c)=>s+c.base+(c.id==='util'&&G.upgrades.wifi?50:0)+(c.id==='rent'&&G.upgrades.seats?80:0),0); }
+
+// ── MENU ──
+const MENU = {
+  drinks:[
+    {id:'espresso',name:'เอสเปรสโซ่',emoji:'☕',cost:18},
+    {id:'latte',name:'คาเฟ่ลาเต้',emoji:'🥛',cost:28},
+    {id:'matcha',name:'มัทฉะลาเต้',emoji:'🍵',cost:32},
+    {id:'icedtea',name:'ชาเย็น',emoji:'🧊',cost:14},
+    {id:'smoothie',name:'สมูทตี้',emoji:'🥤',cost:22},
+  ],
+  food:[
+    {id:'croissant',name:'ครัวซองต์',emoji:'🥐',cost:22},
+    {id:'cake',name:'เค้กชิ้น',emoji:'🍰',cost:28},
+    {id:'sandwich',name:'แซนวิช',emoji:'🥪',cost:24},
+  ],
+  special:[
+    {id:'setA',name:'เซ็ต A (กาแฟ+ขนม)',emoji:'🎁',cost:44},
+    {id:'seasonal',name:'เมนูตามฤดูกาล',emoji:'🌸',cost:38},
+  ]
+};
+const DFLT = {espresso:65,latte:90,matcha:95,icedtea:55,smoothie:75,croissant:70,cake:85,sandwich:72,setA:140,seasonal:115};
+const P = Object.assign({}, DFLT);
+
+const CTYPES = [
+  {name:'พนักงานออฟฟิศ',emoji:'👔',prefer:['espresso','latte'],patience:0.25,thresh:1.6},
+  {name:'นักศึกษา',emoji:'🎓',prefer:['icedtea','croissant'],patience:0.20,thresh:1.4},
+  {name:'บล็อกเกอร์',emoji:'📸',prefer:['matcha','cake'],patience:0.15,thresh:1.8},
+  {name:'ครอบครัว',emoji:'👨‍👩‍👧',prefer:['setA','smoothie'],patience:0.30,thresh:1.5},
+  {name:'นักท่องเที่ยว',emoji:'🧳',prefer:['seasonal','latte'],patience:0.10,thresh:2.0},
+];
+
+const UPGRADES = [
+  {id:'espresso',name:'เครื่อง Espresso Pro',emoji:'⚙️',cost:800,desc:'คุณภาพ+ ชื่อเสียง+10'},
+  {id:'wifi',name:'Wi-Fi ความเร็วสูง',emoji:'📶',cost:400,desc:'รายได้+ แต่ค่าไฟ +50/วัน'},
+  {id:'seats',name:'เก้าอี้พรีเมียม',emoji:'🛋️',cost:600,desc:'ลูกค้าพอใจ+ แต่ค่าเช่า +80/วัน'},
+  {id:'loyalty',name:'บัตรสะสมแต้ม',emoji:'💳',cost:300,desc:'ลูกค้าประจำมากขึ้น'},
+];
+G.upgrades = {espresso:false,wifi:false,seats:false,loyalty:false};
+
+// ── HELPERS ──
+function allItems(){ return Object.values(MENU).flat(); }
+function findItem(id){ return allItems().find(i=>i.id===id); }
+
+function updateUI(){
+  document.getElementById('hd-money').textContent = G.money.toLocaleString();
+  document.getElementById('hd-day').textContent = G.day;
+  document.getElementById('hd-sess').textContent = G.sess;
+  ['rep','staff','supply'].forEach(k=>{
+    document.getElementById('sv-'+k).textContent = Math.round(G[k]);
+    document.getElementById('sb-'+k).style.width = G[k]+'%';
+  });
+  document.getElementById('sv-cust').textContent = G.custsToday;
+  document.getElementById('sb-cust').style.width = Math.min(G.custsToday*5,100)+'%';
+  document.getElementById('p-income').textContent = G.income.toLocaleString();
+  document.getElementById('p-cogs').textContent = G.cogs.toLocaleString();
+  document.getElementById('p-fixed').textContent = G.fixedPaid.toLocaleString();
+  const absP = Math.abs(G.penalties);
+  document.getElementById('p-pen').textContent = absP.toLocaleString();
+  const pc = document.getElementById('p-pen-chip');
+  pc.className = G.penalties>=0?'chip-green':'chip-red';
+  pc.innerHTML = (G.penalties>=0?'+':'-')+'฿<span id="p-pen">'+absP.toLocaleString()+'</span>';
+  const net = G.income - G.cogs - G.fixedPaid + G.penalties;
+  document.getElementById('p-net').textContent = net.toLocaleString();
+  document.getElementById('net-chip').style.color = net>=0?'#6fcf97':'#ff6b6b';
+  document.getElementById('ct-happy').textContent = G.happyCount;
+  document.getElementById('ct-unhappy').textContent = G.unhappyCount;
+  // money color
+  const mb = document.getElementById('money-box');
+  mb.style.color = G.money<500?'#ff6b6b':G.money<1200?'#ffaa55':'var(--caramel)';
+  // loss warning
+  const lw = document.getElementById('loss-warning');
+  if(G.lossStreak>=2){ lw.classList.remove('hidden'); document.getElementById('loss-days').textContent=G.lossStreak; document.getElementById('loss-remain').textContent=5-G.lossStreak; }
+  else lw.classList.add('hidden');
+  document.getElementById('total-fixed').textContent = fixedTotal();
+  renderFixedList();
+}
+
+function log(msg,type='info'){
+  const col={info:'opacity-50',good:'',bad:'',gold:'',ai:''};
+  const sty={good:'color:#6fcf97',bad:'color:#ff6b6b',gold:'color:var(--caramel)',ai:'color:#f0e68c',info:''};
+  const el=document.createElement('div');
+  el.className='text-xs '+(col[type]||'opacity-50');
+  if(sty[type]) el.style.cssText=sty[type];
+  const t=new Date().toLocaleTimeString('th',{hour:'2-digit',minute:'2-digit'});
+  el.textContent=`[${t}] ${msg}`;
+  const area=document.getElementById('log');
+  area.insertBefore(el,area.firstChild);
+  if(area.children.length>45) area.removeChild(area.lastChild);
+}
+
+function toast(msg,type='info'){
+  const area=document.getElementById('toast-area');
+  const el=document.createElement('div');
+  const bg={good:'rgba(45,106,79,.92)',bad:'rgba(170,30,30,.92)',gold:'rgba(160,100,0,.92)',info:'rgba(50,30,15,.92)'};
+  el.className='toast-el text-sm px-4 py-2.5 rounded-xl font-medium';
+  el.style.cssText=`background:${bg[type]||bg.info};color:${type==='gold'?'#ffe08a':'white'};`;
+  el.textContent=msg;
+  area.appendChild(el);
+  setTimeout(()=>el.remove(),4100);
+}
+
+function modal(title,body,okCb,cancelCb,danger=false){
+  document.getElementById('m-title').textContent=title;
+  document.getElementById('m-body').textContent=body;
+  document.getElementById('modal-box').className='modal-box'+(danger?' dm':'');
+  const cb=document.getElementById('m-cancel');
+  cb.classList.toggle('hidden',!cancelCb);
+  cb.onclick=()=>{closeModal();if(cancelCb)cancelCb();};
+  document.getElementById('m-ok').onclick=()=>{closeModal();if(okCb)okCb();};
+  document.getElementById('modal').classList.remove('hidden');
+}
+function closeModal(){ document.getElementById('modal').classList.add('hidden'); }
+
+// ── FIXED COSTS ──
+function renderFixedList(){
+  const list=document.getElementById('fixed-list');
+  list.innerHTML='';
+  FIXED.forEach(c=>{
+    let amt=c.base+(c.id==='util'&&G.upgrades.wifi?50:0)+(c.id==='rent'&&G.upgrades.seats?80:0);
+    const el=document.createElement('div');
+    el.className='flex justify-between text-xs';
+    el.innerHTML=`<span class="opacity-50">${c.name}</span><span style="color:#ffaaaa">฿${amt}</span>`;
+    list.appendChild(el);
+  });
+}
+
+// ── MENU RENDER ──
+function renderMenu(){
+  const items=MENU[G.activeTab];
+  const list=document.getElementById('menu-list');
+  list.innerHTML='';
+  items.forEach(item=>{
+    const price=P[item.id];
+    const margin=Math.round((price-item.cost)/price*100);
+    const mc=margin<30?'#ff8f8f':margin<50?'var(--caramel)':'#6fcf97';
+    const el=document.createElement('div');
+    el.className='menu-row p-2 flex items-center justify-between';
+    el.innerHTML=`
+      <div class="flex items-center gap-2">
+        <span style="font-size:17px">${item.emoji}</span>
+        <div>
+          <div class="text-xs font-medium">${item.name}</div>
+          <div class="text-xs" style="color:${mc}">margin ${margin}% · ต้นทุน ฿${item.cost}</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="text-sm font-bold" style="color:var(--caramel)">฿${price}</span>
+        <button onclick="openEditor('${item.id}')" class="text-xs opacity-30 hover:opacity-80 transition-opacity">✏️</button>
+      </div>`;
+    list.appendChild(el);
+  });
+}
+
+function switchTab(tab){
+  G.activeTab=tab;
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',['drinks','food','special'][i]===tab));
+  document.getElementById('price-editor').classList.add('hidden');
+  renderMenu();
+}
+
+function openEditor(id){
+  G.editingItem=id;
+  const item=findItem(id);
+  document.getElementById('edit-name').textContent=item.name;
+  document.getElementById('edit-cost').textContent='ต้นทุน ฿'+item.cost;
+  const sl=document.getElementById('price-slider');
+  sl.value=P[id];
+  onSlide(P[id]);
+  document.getElementById('price-editor').classList.remove('hidden');
+}
+
+function onSlide(v){
+  v=parseInt(v);
+  document.getElementById('price-lbl').textContent='฿'+v;
+  if(!G.editingItem)return;
+  const item=findItem(G.editingItem);
+  const margin=Math.round((v-item.cost)/v*100);
+  const note=document.getElementById('margin-note');
+  if(v<item.cost){note.textContent='🚨 ต่ำกว่าต้นทุน! ขาดทุนทุกแก้ว';note.style.color='#ff6b6b';}
+  else if(margin<25){note.textContent=`⚠️ Margin ต่ำ (${margin}%) — เสี่ยงขาดทุน`;note.style.color='#ffaa55';}
+  else if(v>item.cost*2.5){note.textContent='💸 แพงเกิน ลูกค้าจะเดินออก';note.style.color='#ffaa55';}
+  else{note.textContent=`✅ Margin ${margin}% — ดี`;note.style.color='#6fcf97';}
+}
+
+function confirmPrice(){
+  if(!G.editingItem)return;
+  const newP=parseInt(document.getElementById('price-slider').value);
+  const item=findItem(G.editingItem);
+  const old=P[G.editingItem];
+  P[G.editingItem]=newP;
+  if(newP<item.cost){
+    toast(`🚨 ${item.name} ต่ำกว่าต้นทุน! ขาดทุนทันที`,'bad');
+    log(`⚠️ ตั้งราคา ${item.name} ต่ำกว่าต้นทุน (฿${newP} < ฿${item.cost})`,'bad');
+    G.rep=Math.max(0,G.rep-3);
+  }else if(newP>item.cost*2.5){
+    toast(`💸 ${item.name} แพงเกิน ลูกค้าจะหนี`,'bad');
+    G.rep=Math.max(0,G.rep-1);
+  }else{
+    toast(`✅ ปรับ ${item.name}: ฿${old} → ฿${newP}`,'good');
+    log(`ปรับราคา ${item.name}: ฿${old} → ฿${newP}`,'gold');
+  }
+  document.getElementById('price-editor').classList.add('hidden');
+  renderMenu(); updateUI();
+}
+
+// ── UPGRADES ──
+function renderUpgrades(){
+  const list=document.getElementById('upg-list');
+  list.innerHTML='';
+  UPGRADES.forEach(u=>{
+    const owned=G.upgrades[u.id];
+    const el=document.createElement('div');
+    el.className='flex items-center justify-between p-2 rounded-lg';
+    el.style.background=owned?'rgba(45,106,79,.2)':'rgba(245,236,215,.03)';
+    el.innerHTML=`
+      <div class="flex items-center gap-2">
+        <span style="font-size:15px">${u.emoji}</span>
+        <div><div class="text-xs font-medium">${u.name}</div><div class="text-xs opacity-40">${u.desc}</div></div>
+      </div>
+      ${owned?'<span class="chip-green">✓ มีแล้ว</span>':`<button onclick="buyUpg('${u.id}')" class="btn btn-outline text-xs px-2 py-1">฿${u.cost}</button>`}`;
+    list.appendChild(el);
+  });
+}
+
+function buyUpg(id){
+  const u=UPGRADES.find(x=>x.id===id);
+  if(G.money<u.cost){toast('💸 เงินไม่พอ!','bad');return;}
+  const extra=id==='wifi'?'\n⚠️ ค่าไฟเพิ่ม ฿50/วัน':id==='seats'?'\n⚠️ ค่าเช่าเพิ่ม ฿80/วัน':'';
+  modal(`ซื้อ ${u.name}?`,`ใช้เงิน ฿${u.cost}${extra}`,()=>{
+    G.money-=u.cost; G.upgrades[id]=true;
+    if(id==='espresso')G.rep=Math.min(100,G.rep+10);
+    if(id==='seats')G.staff=Math.min(100,G.staff+5);
+    log(`ซื้อ ${u.name}`,'gold'); toast(`✨ ${u.name} สำเร็จ!`,'gold');
+    updateUI(); renderUpgrades();
+  },()=>{});
+}
+
+// ── RISK ACTIONS ──
+function renderRisks(){
+  const risks=[
+    {label:'🏷️ ลดราคาทุกเมนู 20%',desc:'ลูกค้าเพิ่ม แต่กำไรลด',fn:doDiscount},
+    {label:'👷 จ้างพนักงานชั่วคราว ฿250',desc:'รับลูกค้าเพิ่มได้ แต่เสียเงิน',fn:doHireTemp},
+    {label:'🧹 ข้ามการทำความสะอาด',desc:'ประหยัด ฿150 แต่เสี่ยงชื่อเสียงตก',fn:doSkipClean},
+    {label:'🔥 โปรวันเดียว (ซื้อ1แถม1)',desc:'ดึงลูกค้าแต่กำไรเหลือน้อยมาก',fn:doBogo},
+  ];
+  const list=document.getElementById('risk-list');
+  list.innerHTML='';
+  risks.forEach(r=>{
+    const el=document.createElement('div');
+    el.className='flex items-center justify-between p-2 rounded-lg';
+    el.style.background='rgba(245,236,215,.03)';
+    el.innerHTML=`
+      <div><div class="text-xs font-medium">${r.label}</div><div class="text-xs opacity-40">${r.desc}</div></div>
+      <button class="btn btn-outline text-xs px-2 py-1">เริ่ม</button>`;
+    el.querySelector('button').onclick=r.fn;
+    list.appendChild(el);
+  });
+}
+
+function doDiscount(){
+  if(G.discountActive){toast('ลดราคาอยู่แล้ว','bad');return;}
+  G.discountActive=true;
+  Object.keys(P).forEach(k=>{P[k]=Math.round(P[k]*.8);});
+  G.rep=Math.min(100,G.rep+4);
+  log('ลดราคา 20% ทุกเมนู — กำไรลดแต่ลูกค้าเพิ่ม','bad');
+  toast('🏷️ ลดราคา 20% แล้ว กำไรต่อแก้วลดลง','gold');
+  renderMenu(); updateUI();
+}
+
+function doHireTemp(){
+  if(G.money<250){toast('เงินไม่พอ','bad');return;}
+  G.tempStaff=true; G.money-=250; G.penalties-=250;
+  G.staff=Math.min(100,G.staff+10);
+  log('จ้างพนักงานชั่วคราว -฿250 ขวัญ+10','bad');
+  toast('👷 จ้างพนักงานเพิ่ม -฿250','bad'); updateUI();
+}
+
+function doSkipClean(){
+  modal('ข้ามการทำความสะอาด?','ประหยัด ฿150 แต่โอกาส 45% ที่ชื่อเสียงจะตก -12 และถูกปรับ ฿300',()=>{
+    G.money+=150; G.penalties+=150;
+    if(Math.random()<.45){
+      G.rep=Math.max(0,G.rep-12); G.money-=300; G.penalties-=300;
+      log('💥 ถูกร้องเรียนเรื่องสะอาด! ชื่อเสียง-12 ค่าชดเชย-฿300','bad');
+      toast('😱 ถูกร้องเรียน! ชื่อเสียง-12 เสียค่าชดเชย ฿300','bad');
+    }else{
+      log('ข้ามทำความสะอาด ไม่มีใครสังเกต (โชคดี!)','gold');
+      toast('🧹 ประหยัดได้ ฿150 (คราวนี้โชคดี)','good');
+    }
+    updateUI();
+  },()=>{},true);
+}
+
+function doBogo(){
+  modal('เปิดโปร ซื้อ 1 แถม 1?','ลูกค้าแห่มา +2-3 คน แต่รายได้ต่อออเดอร์ลดครึ่ง มีโอกาสขาดทุนสูงถ้าต้นทุนสูง',()=>{
+    G.bogoActive=true;
+    log('โปร BOGO เปิดแล้ว — รายได้ต่อออเดอร์ลดครึ่ง','bad');
+    toast('🔥 โปร ซื้อ1แถม1 เปิดแล้ว!','gold');
+  },()=>{},false);
+}
+
+// ── CUSTOMERS ──
+function callCustomers(){
+  if(G.supply<8){toast('⚠️ วัตถุดิบหมด!','bad');return;}
+  const area=document.getElementById('cust-area');
+  area.innerHTML=''; G.currentCusts=[];
+  let n=Math.floor(Math.random()*3)+2;
+  if(G.rep>70)n++;
+  if(G.upgrades.loyalty)n++;
+  if(G.rep<30)n=Math.max(1,n-1);
+  if(G.tempStaff)n++;
+  if(G.bogoActive)n+=2;
+  for(let i=0;i<n;i++){
+    const ct=CTYPES[Math.floor(Math.random()*CTYPES.length)];
+    const prefId=ct.prefer[Math.floor(Math.random()*ct.prefer.length)];
+    const item=findItem(prefId)||allItems()[0];
+    const patience=Math.random()>.3?'ดี':'ใจร้อน';
+    const c={...ct,order:item,id:Date.now()+i,patience};
+    G.currentCusts.push(c);
+    const price=P[item.id];
+    const tooExp=price>item.cost*ct.thresh;
+    const el=document.createElement('div');
+    el.className='float-in card-light p-2 flex items-center justify-between';
+    el.style.animationDelay=(i*.08)+'s';
+    el.innerHTML=`
+      <div class="flex items-center gap-2">
+        <span style="font-size:18px">${ct.emoji}</span>
+        <div>
+          <div class="text-xs font-medium">${ct.name}</div>
+          <div class="text-xs opacity-40">สั่ง: ${item.emoji}${item.name} · ${patience==='ใจร้อน'?'😤 ใจร้อน':'😊 รอได้'}</div>
+        </div>
+      </div>
+      <div class="text-right">
+        <div class="text-xs font-bold" style="color:var(--caramel)">฿${price}</div>
+        ${tooExp?'<div class="text-xs" style="color:#ffaa55">แพงไป?</div>':''}
+      </div>`;
+    area.appendChild(el);
+  }
+  log(`ลูกค้าเข้า ${n} คน`,'info');
+}
+
+function serveCustomers(){
+  if(G.currentCusts.length===0){toast('ไม่มีลูกค้า กด "เรียกลูกค้า" ก่อน','bad');return;}
+  if(G.supply<5){toast('วัตถุดิบหมด!','bad');return;}
+  let income=0,cogs=0,happy=0,unhappy=0,walkouts=0;
+  G.currentCusts.forEach(c=>{
+    const price=P[c.order.id];
+    const item=c.order;
+    // Walkout if price too high
+    if(price>item.cost*c.thresh&&Math.random()<.52){walkouts++;unhappy++;G.rep=Math.max(0,G.rep-1.5);return;}
+    const actualCost=item.cost*(G.upgrades.espresso?.88:1);
+    const ok=Math.random()>(c.patience==='ใจร้อน'?.32:.12)-(G.upgrades.espresso&&['espresso','latte'].includes(item.id)?.08:0)-(G.staff>80?.05:0);
+    // Below-cost pricing: receive money but still costs more than gained
+    const effectivePrice=G.bogoActive?price*.5:price;
+    if(ok){
+      income+=effectivePrice; cogs+=actualCost; G.supply-=3; happy++;
+      G.rep=Math.min(100,G.rep+.35);
+    }else{
+      cogs+=actualCost*.4; unhappy++; G.rep=Math.max(0,G.rep-1.2);
+      if(Math.random()<.2){G.money-=30;G.penalties-=30;log('ลูกค้าร้องเรียน คืนเงิน -฿30','bad');}
+    }
+  });
+  if(walkouts>0){toast(`⚠️ ลูกค้าเดินออก ${walkouts} คน ราคาแพงเกิน`,'bad');log(`ลูกค้าเดินออก ${walkouts} คน เพราะราคาแพง`,'bad');}
+  const grossProfit=income-cogs;
+  G.income+=Math.round(income); G.cogs+=Math.round(cogs);
+  G.money+=Math.round(income)-Math.round(cogs);
+  G.custsToday+=G.currentCusts.length;
+  G.happyCount+=happy; G.unhappyCount+=unhappy;
+  G.supply=Math.max(0,G.supply);
+  G.currentCusts=[];
+  document.getElementById('cust-area').innerHTML='<p class="text-xs opacity-35 text-center pt-10">เสิร์ฟเสร็จ ✓ กด "เรียกลูกค้า" อีกรอบ</p>';
+  const gpColor=grossProfit>=0?'good':'bad';
+  if(Math.round(income)>0)toast(`${grossProfit>=0?'✅':'⚠️'} รายได้ +฿${Math.round(income)} กำไรรวม: ${grossProfit>=0?'+':''} ฿${Math.round(grossProfit)}`,gpColor);
+  if(unhappy>0)toast(`😞 ไม่พอใจ ${unhappy} คน${walkouts>0?' รวมเดินออก '+walkouts+' คน':''}`, 'bad');
+  log(`เสิร์ฟ: รบั ฿${Math.round(income)} ต้นทุน ฿${Math.round(cogs)} กำไรรวม ${Math.round(grossProfit)>=0?'+':''}฿${Math.round(grossProfit)} | ⭐${happy} 💔${unhappy}`,grossProfit>=0?'good':'bad');
+  updateUI();
+}
+
+// ── SHOP ACTIONS ──
+function restockSupplies(){
+  if(G.money<400){toast('เงินไม่พอ!','bad');return;}
+  G.money-=400; G.cogs+=400; G.supply=Math.min(100,G.supply+55);
+  log('สั่งวัตถุดิบ +55 จ่าย ฿400','good'); toast('📦 วัตถุดิบ +55','good'); updateUI();
+}
+
+function payBonus(){
+  if(G.money<200){toast('เงินไม่พอ','bad');return;}
+  G.money-=200; G.penalties-=200;
+  const prev=G.staff; G.staff=Math.min(100,G.staff+15);
+  log(`โบนัสพนักงาน -฿200 ขวัญ${Math.round(prev)}→${Math.round(G.staff)}`,'gold');
+  toast('💝 ขวัญพนักงาน +15!','good'); updateUI();
+}
+
+// ── END DAY ──
+function endDay(){
+  const fixed=fixedTotal();
+  if(G.money<fixed){
+    const short=fixed-G.money;
+    modal('💸 เงินไม่พอจ่ายค่าคงที่!',
+      `ขาดอีก ฿${short.toLocaleString()}\nค่าคงที่: ฿${fixed} | เงินที่มี: ฿${G.money}\n\nต้องกู้ฉุกเฉินดอกเบี้ย 25% (฿${Math.ceil(short*1.25)})`,
+      ()=>{
+        const loan=Math.ceil(short*1.25);
+        G.money+=short; G.penalties-=loan-short;
+        log(`🚨 กู้ฉุกเฉิน ฿${loan} (ดอกเบี้ย 25%)`,'bad');
+        toast(`🚨 กู้ฉุกเฉิน +฿${short} แต่หนี้ ฿${loan}`,'bad');
+        doEndCalc(fixed);
+      },null,true);
+    return;
+  }
+  doEndCalc(fixed);
+}
+
+function doEndCalc(fixed){
+  G.money-=fixed; G.fixedPaid+=fixed;
+  const net=G.income-G.cogs-G.fixedPaid+G.penalties;
+  // Staff decay
+  if(G.custsToday>15)G.staff=Math.max(0,G.staff-8);
+  else if(G.custsToday<3)G.staff=Math.max(0,G.staff-6);
+  if(G.staff<30)G.rep=Math.max(0,G.rep-5);
+  // Loss streak
+  if(net<0)G.lossStreak++;else G.lossStreak=0;
+  // Supply decay overnight
+  G.supply=Math.max(0,G.supply-Math.floor(Math.random()*8+4));
+  const emoji=net>600?'🎉':net>0?'✅':net>-300?'😟':'😱';
+  const mood=net>600?'กำไรดีมาก!':net>0?'พอใช้ได้':net>-300?'ขาดทุนเล็กน้อย':'ขาดทุนหนัก!!';
+  const lossNote=G.lossStreak>=2?`\n\n🔴 ขาดทุนติด ${G.lossStreak} วัน! อีก ${5-G.lossStreak} วันร้านจะถูกปิด`:'';
+  const tips=net<0?`\n\n💡 เคล็ดลับ: ${G.cogs>G.income?'ต้นทุนสูงกว่ารายได้ ปรับราคาให้สูงขึ้น':G.income<fixed?'รายได้ไม่พอค่าคงที่ ต้องเพิ่มลูกค้า':'ลดค่าใช้จ่ายฟุ่มเฟือย'}`:'';
+  const summary=`รายได้:       +฿${G.income.toLocaleString()}\nต้นทุนสินค้า: -฿${G.cogs.toLocaleString()}\nค่าคงที่:     -฿${G.fixedPaid.toLocaleString()}\nอื่นๆ:        ${G.penalties>=0?'+':''}฿${G.penalties.toLocaleString()}\n──────────────────\nกำไรสุทธิ: ${net>=0?'+':''}฿${net.toLocaleString()}\n\nเงินคงเหลือ: ฿${G.money.toLocaleString()}${lossNote}${tips}`;
+  modal(`${emoji} สรุปวันที่ ${G.day} — ${mood}`,summary,()=>{
+    if(checkGameOver(net))return;
+    startNewDay();
+  },null,net<0);
+  log(`═══ วันที่ ${G.day} สิ้นสุด: ${net>=0?'+':''}฿${net} ═══`,net>=0?'good':'bad');
+}
+
+function checkGameOver(net){
+  if(G.money<=0){showGameOver('เงินหมดเกลี้ยง! ไม่สามารถดำเนินกิจการต่อได้');return true;}
+  if(G.lossStreak>=5){showGameOver('ขาดทุนติดต่อกัน 5 วัน เจ้าหนี้บังคับปิดกิจการ');return true;}
+  if(G.rep<=5){showGameOver('ชื่อเสียงตกต่ำมาก ลูกค้าไม่มีใครมาแล้ว');return true;}
+  return false;
+}
+
+function startNewDay(){
+  G.day++; G.sess='เช้า'; G.income=0; G.cogs=0; G.fixedPaid=0; G.penalties=0;
+  G.custsToday=0; G.happyCount=0; G.unhappyCount=0;
+  G.discountActive=false; G.tempStaff=false; G.bogoActive=false;
+  G.peakMoney=Math.max(G.peakMoney,G.money);
+  document.getElementById('cust-area').innerHTML='<p class="text-xs opacity-35 text-center pt-10" id="no-cust-msg">เริ่มวันใหม่! กด "เรียกลูกค้า"</p>';
+  log(`═══ เริ่มวันที่ ${G.day} ═══`,'gold');
+  toast(`🌅 วันที่ ${G.day}! ค่าคงที่วันนี้ ฿${fixedTotal()}`,'gold');
+  updateUI();
+}
+
+function showGameOver(reason){
+  document.getElementById('go-reason').textContent=reason;
+  document.getElementById('go-days').textContent=G.day;
+  document.getElementById('go-stats').innerHTML=`
+    <div class="flex justify-between"><span class="opacity-50">เงินสูงสุด</span><span style="color:var(--caramel)">฿${G.peakMoney.toLocaleString()}</span></div>
+    <div class="flex justify-between"><span class="opacity-50">เงินตอนปิด</span><span style="color:#ff6b6b">฿${G.money.toLocaleString()}</span></div>
+    <div class="flex justify-between"><span class="opacity-50">ชื่อเสียงสุดท้าย</span><span>${Math.round(G.rep)}/100</span></div>
+    <div class="flex justify-between"><span class="opacity-50">ขาดทุนติดต่อกัน</span><span style="color:#ff6b6b">${G.lossStreak} วัน</span></div>`;
+  document.getElementById('go-screen').classList.remove('hidden');
+}
+
+function restart(){
+  document.getElementById('go-screen').classList.add('hidden');
+  Object.assign(P,DFLT);
+  G={money:2500,day:1,sess:'เช้า',rep:50,staff:70,supply:80,custsToday:0,income:0,cogs:0,fixedPaid:0,penalties:0,happyCount:0,unhappyCount:0,currentCusts:[],activeTab:'drinks',editingItem:null,lossStreak:0,peakMoney:2500,discountActive:false,tempStaff:false,bogoActive:false,upgrades:{espresso:false,wifi:false,seats:false,loyalty:false}};
+  document.getElementById('log').innerHTML='';
+  document.getElementById('cust-area').innerHTML='<p class="text-xs opacity-35 text-center pt-10" id="no-cust-msg">กด "เรียกลูกค้า" เพื่อเริ่ม</p>';
+  renderMenu(); renderUpgrades(); renderRisks(); updateUI();
+  log('🔄 เริ่มเกมใหม่!','gold');
+  toast('☕ เปิดร้านใหม่! ค่าคงที่ ฿600/วัน ต้องทำกำไรให้ได้!','gold');
+}
+
+// ── AI FEATURES ──
+async function triggerEvent(){
+  const btn=document.getElementById('ev-btn');
+  btn.disabled=true; btn.textContent='⏳...';
+  const box=document.getElementById('ev-box');
+  box.innerHTML='<span class="loading-dots" style="color:var(--caramel)">กำลังสร้างเหตุการณ์<span>.</span><span>.</span><span>.</span></span>';
+  const ctx=`วันที่${G.day} เงิน฿${G.money} ชื่อเสียง${Math.round(G.rep)} วัตถุดิบ${G.supply}% ขาดทุนติด${G.lossStreak}วัน อุปกรณ์:${Object.entries(G.upgrades).filter(([,v])=>v).map(([k])=>k).join(',')||'ไม่มี'}`;
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:220,messages:[{role:'user',content:`เป็น AI เกมร้านกาแฟ สร้างเหตุการณ์สุ่ม 2-3 ประโยคภาษาไทย ให้มีทั้งดีและร้าย เช่น ตรวจสุขาภิบาล เครื่องชำรุด รีวิวไวรัล ลูกค้า VIP เพลิงไหม้เล็กน้อย พร้อมระบุ effect ชัดเจน เช่น +เงิน -วัตถุดิบ +ชื่อเสียง -ชื่อเสียง ค่าปรับ บริบท:${ctx}`}]})});
+    const d=await r.json();
+    const txt=d.content?.[0]?.text||'วันนี้ไม่มีอะไรพิเศษ';
+    box.textContent=txt;
+    if(txt.includes('+เงิน')||txt.includes('โบนัส')||txt.includes('ลูกค้า VIP')){const b=Math.floor(Math.random()*300)+100;G.money+=b;G.income+=b;toast(`💰 โบนัส +฿${b}`,'gold');}
+    if(txt.includes('ตรวจ')||txt.includes('ค่าปรับ')||txt.includes('สุขาภิบาล')){const f=Math.floor(Math.random()*400)+150;G.money-=f;G.penalties-=f;toast(`🚨 ค่าปรับ -฿${f}`,'bad');log(`ค่าปรับ -฿${f}`,'bad');}
+    if(txt.includes('ชำรุด')||txt.includes('ซ่อม')||txt.includes('เสีย')){const r2=Math.floor(Math.random()*250)+150;G.money-=r2;G.penalties-=r2;toast(`🔧 ค่าซ่อม -฿${r2}`,'bad');}
+    if(txt.includes('+ชื่อเสียง')||txt.includes('รีวิว')||txt.includes('ไวรัล')){G.rep=Math.min(100,G.rep+8);toast('⭐ ชื่อเสียง +8','good');}
+    if(txt.includes('-ชื่อเสียง')||txt.includes('ร้องเรียน')){G.rep=Math.max(0,G.rep-8);toast('💔 ชื่อเสียง -8','bad');}
+    if(txt.includes('-วัตถุดิบ')||txt.includes('ของเสีย')){G.supply=Math.max(0,G.supply-20);toast('📦 วัตถุดิบ -20','bad');}
+    log('AI Event: '+txt.substring(0,55)+'...','ai'); updateUI();
+  }catch(e){
+    box.textContent='🌧️ ฝนตกหนัก ลูกค้าน้อยลง วัตถุดิบเสียหายบางส่วน -10';
+    G.supply=Math.max(0,G.supply-10); updateUI();
+  }
+  btn.disabled=false; btn.textContent='✨ สุ่มเหตุการณ์';
+}
+
+async function askAI(){
+  const q=document.getElementById('ai-q').value.trim();
+  if(!q)return;
+  const out=document.getElementById('ai-out');
+  out.innerHTML='<span class="loading-dots" style="color:var(--caramel)">กำลังคิด<span>.</span><span>.</span><span>.</span></span>';
+  const s=`เงิน฿${G.money} ชื่อเสียง${Math.round(G.rep)} วัตถุดิบ${G.supply}% รายได้฿${G.income} ค่าคงที่฿${fixedTotal()}/วัน ขาดทุนติด${G.lossStreak}วัน`;
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:220,messages:[{role:'user',content:`เป็นที่ปรึกษาร้านกาแฟในเกม ตอบภาษาไทย ไม่เกิน 3 ประโยค ตรงประเด็น สถานะ:${s} คำถาม:${q}`}]})});
+    const d=await r.json();
+    out.textContent=d.content?.[0]?.text||'ลองถามใหม่ครับ';
+  }catch(e){out.textContent='ดูแลให้ margin อย่างน้อย 40% และรายได้ต้องมากกว่าค่าคงที่ ฿600/วันเสมอครับ';}
+  document.getElementById('ai-q').value='';
+}
+
+// ── INIT ──
+function init(){
+  renderMenu(); renderUpgrades(); renderRisks(); updateUI();
+  log('ยินดีต้อนรับสู่ Cafe Crafter AI! ☕','gold');
+  log(`ค่าคงที่ ฿${fixedTotal()}/วัน — ต้องทำกำไรเกินนี้จึงจะอยู่รอด`,'bad');
+  log('ขาดทุน 5 วันติด = ร้านปิด!','bad');
+  setTimeout(callCustomers,600);
+}
+init();
+</script>
+</body>
+</html>
